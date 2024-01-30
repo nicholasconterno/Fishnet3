@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fish Net 2</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='form-style.css') }}">
+</head>
+<body>
+    <div class="centered-container">
+        <h1>Upload Image to be Classified by fish</h1>
+        <div id="subheader">
+            <p>Upload file to this ish</p>
+        </div>
+        <form method="post" action="{{ url_for('app_routes.upload_file') }}" enctype="multipart/form-data">
+            <label for="file">File:</label>
+            <input type="file" id="file" name="file" required><br><br>
+
+            <input type="submit" value="Upload">
+        </form>
+    </div>
+    {% if message %}
+        <input type="hidden" id="uploadMessage" value="{{ message }}">
+
+        <script type="text/javascript">
+            document.addEventListener('DOMContentLoaded', function() {
+                var uploadMessage = document.getElementById('uploadMessage').value;
+                alert(uploadMessage);
+                window.location.href = "{{ url_for('app_routes.index') }}";
+            });
+        </script>
+    {% endif %}
+</body>
+</html>

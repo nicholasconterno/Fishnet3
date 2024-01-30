@@ -1,0 +1,86 @@
+/* Reset some default styles for better consistency */
+body, h1, h2, p, form {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Set the background color to a dark blue */
+body {
+    background-color: #003366; /* Dark Blue color */
+    font-family: 'Arial', sans-serif;
+    color: #FFFFFF; /* Text color for contrast */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0; /* Remove default margin */
+}
+
+/* Center the content area */
+.centered-container {
+    background-color: #004ca2; /* Duke Blue color */
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3); /* Soft shadow for depth */
+    text-align: center;
+    width: 90%;
+    max-width: 600px;
+}
+
+/* Style the subheader */
+#subheader {
+    margin-bottom: 20px;
+}
+
+#subheader h2 {
+    font-size: 24px;
+    color: #FFD700; /* Gold color for contrast */
+    margin-bottom: 10px;
+}
+
+#subheader p {
+    font-size: 16px;
+    color: #FFFFFF;
+    line-height: 1.5;
+}
+
+/* Style form elements */
+form label {
+    display: block;
+    font-size: 18px;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #FFFFFF;
+}
+
+form input[type="text"],
+form input[type="file"] {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    border: 1px solid #FFFFFF;
+    border-radius: 5px;
+    font-size: 16px;
+    color: #000000;
+    background-color: #FFFFFF;
+}
+
+form input[type="submit"] {
+    width: auto;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    background-color: #002a53; 
+    color: #ffffff;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+form input[type="submit"]:hover {
+    background-color: #000053; /* Slightly darker on hover */
+}
+
+/* Additional Styles */
+/* Add any additional styles you might want here */
