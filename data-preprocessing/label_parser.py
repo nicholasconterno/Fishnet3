@@ -27,7 +27,6 @@ def process_data(file_path):
     return data_map
 
 # Use the function with the path to your CSV file
-# Replace 'path_to_your_file.csv' with the actual file path
 data = process_data('data/fishnet_labels.csv')
 c=0
 for i in data.keys():
