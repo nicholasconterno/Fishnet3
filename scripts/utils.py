@@ -31,6 +31,29 @@ def calc_iou(box1: list, box2: list) -> float:
     return intersection_area / union_area
 
 
+def custom_loss(predictions: torch.Tensor, target: torch.Tensor, phi: float = 0.5) -> torch.Tensor:
+    """
+    Custom two part loss function. 
+    The first part is the cross-entropy loss for the class predictions.
+    The second part is 1-IoU for the bounding box predictions.
+    The two parts are combined with a weighted sum.
+
+    Args:
+        predictions:
+        target: 
+        phi: float, 0-1 weight to combine the two parts of the loss. 
+            1 means only the bounding box loss is considered, 0 means only the class loss is considered.
+
+    Returns:
+        torch.Tensor: loss value
+    """
+    # Calculate the cross-entropy loss for the class predictions
+    class_loss = torch.nn.functional.cross_entropy(predictions['class'], target['class'])
+    # Calculate the 1-IoU for the bounding box predictions
+    iou_loss = 1 - calc_iou(predictions['box'], target['box'])
+    # Combine the two parts with a weighted sum
+    return phi * class_loss + (1 - phi) * iou_loss
+
 
 def display_bounding_boxes(input_image: torch.Tensor, model_outputs: dict, thresh: float = 0.8) -> None:
     """
