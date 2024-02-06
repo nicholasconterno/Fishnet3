@@ -1,3 +1,9 @@
+data/foid_images_v100/
+data/foid_labels_v100/
+data/foid_images_v100.zip
+data/foid_labels_v100.zip
+testing/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
