@@ -89,3 +89,4 @@ def display_bounding_boxes(input_image: torch.Tensor, model_outputs: dict, thres
         ax.add_patch(rect)
 
     plt.show()
+
