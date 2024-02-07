@@ -4,6 +4,7 @@ data/foid_images_v100.zip
 data/foid_labels_v100.zip
 data/test_images/
 testing/
+fishnet3-56e06381ff35.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
