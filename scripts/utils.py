@@ -37,6 +37,11 @@ def custom_loss(predictions: torch.Tensor, target: torch.Tensor, phi: float = 0.
     class_target = target['class'].unsqueeze(0) if target['class'].ndim == 0 else target['class']
 
     # Calculate the cross-entropy loss for the class predictions
+    # convert class_target to long
+    class_target = class_target.float()
+    # convert class_pred to float
+    class_pred = class_pred.float()
+
     class_loss = torch.nn.functional.cross_entropy(class_pred, class_target)
     
     # Calculate the 1-IoU for the bounding box predictions
@@ -118,6 +123,8 @@ def find_matches(iou_matrix, iou_threshold=0.1):
         List[Tuple[int, int]]: List of matches in the format (pred_idx, true_idx).
     """
     matches = []
+    if iou_matrix.numel() == 0:
+        return matches
 
     # Convert the IoU matrix to numpy for easier processing
     iou_matrix_np = iou_matrix.numpy()
@@ -150,7 +157,12 @@ def find_matches(iou_matrix, iou_threshold=0.1):
 
 
 
-
+# input: dict, containing predicted boxes and classes
+# targets: dict, containing true boxes and classes
+# phi: float, weight factor for combining class loss and bounding box loss
+# unmatched_penalty: float, penalty to add for each unmatched box
+# iou_threshold: float, threshold for considering a box match
+# return: torch.Tensor: total loss for the image
 def calculate_total_loss_for_image(predictions, targets, phi=0.5, unmatched_penalty=1.0, iou_threshold=0.1):
     """
     Calculate the total loss for an image, including the loss for matched boxes and a penalty for unmatched boxes.
@@ -217,3 +229,115 @@ def calculate_total_loss_for_image(predictions, targets, phi=0.5, unmatched_pena
 # # Calculate the total loss
 # total_loss = calculate_total_loss_for_image(predictions, targets, phi=0.5, unmatched_penalty=1.0, iou_threshold=0.1)
 # print(total_loss)
+
+# def test_calc_iou():
+#     assert calc_iou([0, 0, 1, 1], [0, 0, 1, 1]) == 1  # Fully overlapping
+#     assert calc_iou([0, 0, 1, 1], [1, 1, 2, 2]) == 0  # Non-overlapping
+#     assert calc_iou([0, 0, 0, 0], [0, 0, 1, 1]) == 0  # Zero-area box
+#     # Add more test cases as necessary
+# def test_calculate_iou_matrix():
+#     pred_boxes = torch.tensor([[10, 10, 50, 50]])
+#     true_boxes = torch.tensor([[20, 20, 40, 40]])
+#     iou_matrix = calculate_iou_matrix(pred_boxes, true_boxes)
+#     assert iou_matrix.shape == (1, 1)  # Shape test
+#     assert iou_matrix[0, 0] > 0  # Non-zero IoU
+
+#     # Test with empty pred_boxes or true_boxes
+#     assert calculate_iou_matrix(torch.tensor([]), true_boxes).numel() == 0
+#     assert calculate_iou_matrix(pred_boxes, torch.tensor([])).numel() == 0
+# def test_custom_loss():
+#     predictions = {'class': torch.tensor([0.0,1.0]), 'box': torch.tensor([10, 10, 50, 50])}
+#     target = {'class': torch.tensor([0.0,1.0]), 'box': torch.tensor([20, 20, 40, 40])}
+#     loss = custom_loss(predictions, target)
+#     assert loss >= 0  # Loss should be non-negative
+
+#     # Test with edge cases, like identical boxes, different classes, etc.
+#     # ...
+# def test_calculate_total_loss_for_image():
+#     predictions = {'boxes': torch.tensor([[10, 10, 50, 50]]), 'classes': torch.tensor([0.0])}
+#     targets = {'boxes': torch.tensor([[20, 20, 40, 40]]), 'classes': torch.tensor([0.0])}
+#     loss = calculate_total_loss_for_image(predictions, targets)
+#     assert loss >= 0  # Loss should be non-negative
+
+#     # Test with no predicted boxes
+#     predictions_no_boxes = {'boxes': torch.tensor([]), 'classes': torch.tensor([])}
+#     loss_no_boxes = calculate_total_loss_for_image(predictions_no_boxes, targets)
+#     assert loss_no_boxes >= 0
+
+#     # Add more test cases as necessary
+
+# test_calc_iou()
+# test_calculate_iou_matrix()
+# test_custom_loss()
+# test_calculate_total_loss_for_image()
+# print("All tests passed!")
+
+# import torch
+# import torch.nn.functional as F
+
+# def test_custom_loss_multi_class():
+#     # Number of classes
+#     num_classes = 30
+#     # Mock predictions
+#     # Assuming we have 2 predicted boxes and 30 classes
+#     # Random logits for 2 boxes
+#     class_logits = torch.tensor([[0.0, 1.0],[0.5, 0.5]])
+#    # Random logits for 2 boxes
+#     pred_boxes = torch.tensor([[10, 10, 50, 50],[1,1,5,5]], dtype=torch.float32)
+
+#     # Mock targets
+#     # For simplicity, let's say both boxes belong to class 0
+#     target_classes = torch.tensor([[0.3, 0.7],[0.4, 0.6]])  # Class indices
+
+#     true_boxes = torch.tensor([[15, 15, 55, 55],[2,2,6,6]], dtype=torch.float32)
+
+#     # Convert class logits to probabilities for testing
+#     class_probs = F.softmax(class_logits, dim=1)
+
+#     predictions = {'classes': class_probs, 'boxes': pred_boxes}
+#     target = {'classes': target_classes, 'boxes': true_boxes}
+
+#     # Calculate the loss
+#     loss = calculate_total_loss_for_image(predictions, target, phi=0.5)
+#     assert loss >= 0  # Loss should be non-negative
+
+# # Call the test function
+# test_custom_loss_multi_class()
+# print("Test passed!")
+
+# def test_case_1():
+#     # True boxes (2 boxes)
+#     true_boxes = torch.tensor([[10, 10, 50, 50], [70, 70, 120, 120]], dtype=torch.float32)
+#     # True classes (tensor with 30 probabilities for each box)
+#     true_classes = torch.tensor([[1.0] + [0.0]*29, [0.0] + [1.0] + [0.0]*28])
+
+#     # Predicted boxes (3 boxes)
+#     pred_boxes = torch.tensor([], dtype=torch.float32)
+#     # Predicted classes (tensor with 30 probabilities for each box)
+#     pred_classes = torch.tensor([])
+
+#     predictions = {'boxes': pred_boxes, 'classes': pred_classes}
+#     targets = {'boxes': true_boxes, 'classes': true_classes}
+
+#     loss = calculate_total_loss_for_image(predictions, targets, phi=0.5, unmatched_penalty=1.0, iou_threshold=0.1)
+#     print("Test Case 1 Loss:", loss)
+# def test_case_2():
+#     # True boxes (3 boxes)
+#     true_boxes = torch.tensor([], dtype=torch.float32)
+#     # True classes (tensor with 30 probabilities for each box)
+#     true_classes = torch.tensor([])
+
+#     # Predicted boxes (2 boxes)
+#     pred_boxes = torch.tensor([[11, 11, 49, 49], [69, 69, 121, 121]], dtype=torch.float32)
+#     # Predicted classes (tensor with 30 probabilities for each box)
+#     pred_classes = torch.tensor([[0.8] + [0.2]*29, [0.2] + [0.8] + [0]*28])
+
+#     predictions = {'boxes': pred_boxes, 'classes': pred_classes}
+#     targets = {'boxes': true_boxes, 'classes': true_classes}
+
+#     loss = calculate_total_loss_for_image(predictions, targets, phi=0.5, unmatched_penalty=1.0, iou_threshold=0.1)
+#     print("Test Case 2 Loss:", loss)
+
+
+# test_case_1()
+# test_case_2()
