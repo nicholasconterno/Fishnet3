@@ -195,6 +195,33 @@ def calculate_total_loss_for_image(predictions, targets, phi=0.5, unmatched_pena
     return total_loss
 
 
+def transform_targets_fixed(raw_targets):
+    # Define a mapping from class names to class IDs (assuming 'Human' is class 1)
+    class_to_id = {'Human': 0, 'Swordfish': 1, 'Albacore': 2, 'Yellowfin tuna': 3, 'No fish': 4, 'Mahi mahi': 5, 'Skipjack tuna': 6, 'Unknown': 7, 'Wahoo': 8, 'Bigeye tuna': 9, 'Striped marlin': 10, 'Opah': 11, 'Blue marlin': 12, 'Escolar': 13, 'Shark': 14, 'Tuna': 15, 'Water': 16, 'Oilfish': 17, 'Pelagic stingray': 18, 'Marlin': 19, 'Great barracuda': 20, 'Shortbill spearfish': 21, 'Indo Pacific sailfish': 22, 'Lancetfish': 23, 'Long snouted lancetfish': 24, 'Black marlin': 25}
+
+    # Initialize lists to hold transformed targets
+    boxes = []
+    labels = []
+
+    for item in raw_targets:
+        # Check if the target is not 'Missing'
+        if item[2] != 'Missing':
+            # Convert coordinate strings to float and correctly order as (xmin, ymin, xmax, ymax)
+            box = [float(item[0][0]), float(item[1][0]), float(item[0][1]), float(item[1][1])]
+            boxes.append(box)
+            # Convert class name to class ID and add to labels list
+            labels.append(class_to_id[item[2]])
+
+    # Convert lists to PyTorch tensors
+    boxes_tensor = torch.tensor(boxes, dtype=torch.float32)
+    labels_tensor = torch.tensor(labels, dtype=torch.int64)
+
+    # Create the target dictionary
+    target_dict = {'boxes': boxes_tensor, 'labels': labels_tensor}
+
+    return target_dict
+
+
 # import torch
 
 # # Mock data
