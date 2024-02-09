@@ -137,7 +137,8 @@ if __name__ == "__main__":
                             bucket_name="fishnet3-object-detection", 
                             gcp_cred_path="../fishnet3-56e06381ff35.json", 
                             transform=transform,
-                            resize_shape=(400, 800)) 
+                            resize_shape=(400, 800),
+                            download_data=True) 
     
 
     # Setup model and freeze the weights

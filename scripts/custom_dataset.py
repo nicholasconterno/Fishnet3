@@ -7,7 +7,7 @@ from google.cloud import storage
 
 
 class FishnetDataset(Dataset):
-    def __init__(self, labels_file, bucket_name, gcp_cred_path, transform=None, resize_shape: tuple = (400, 800)):
+    def __init__(self, labels_file, bucket_name, gcp_cred_path, transform=None, resize_shape: tuple = (400, 800), download_data: bool = False):
         self.label_dict = json.load(open(labels_file))
         self.label_list = list(self.label_dict.keys())
         self.bucket_name = bucket_name
@@ -16,16 +16,34 @@ class FishnetDataset(Dataset):
         self.storage_client = storage.Client()
         self.bucket = self.storage_client.bucket(bucket_name)
         self.resize_shape = resize_shape
+        self.download_data = download_data
+        self.data_dir = "../data/dataset"
+
+        if self.download_data:
+            os.makedirs(self.data_dir, exist_ok=True)
+            # Download and save data locally
+            total_files = len(self.label_list)
+            c = 0
+            for label in self.label_list:
+                img_path = os.path.join(self.data_dir, label + ".jpg")
+                blob = self.bucket.blob(label + ".jpg")
+                blob.download_to_filename(img_path)
+                c += 1
+                if c % 100 == 0:
+                    print(f"Downloaded {c}/{total_files} images")
+            
 
     def __len__(self):
         return len(self.label_dict)
 
     def __getitem__(self, idx):
-        blob = self.bucket.blob(self.label_list[idx] + ".jpg")
-        img_bytes = blob.download_as_bytes()
-
-        # Convert bytes to an image
-        img = Image.open(io.BytesIO(img_bytes)).convert('RGB')
+        if self.download_data:
+            img_path = os.path.join(self.data_dir, self.label_list[idx] + ".jpg")
+            img = Image.open(img_path).convert('RGB')
+        else:
+            blob = self.bucket.blob(self.label_list[idx] + ".jpg")
+            img_bytes = blob.download_as_bytes()
+            img = Image.open(io.BytesIO(img_bytes)).convert('RGB')
 
         # Find the resizing scales for x and y
         x_scale = self.resize_shape[1] / img.size[0]
