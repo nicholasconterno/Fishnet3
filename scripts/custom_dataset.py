@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 from torch.utils.data import Dataset
 import json
 from PIL import Image
@@ -8,7 +7,7 @@ from google.cloud import storage
 
 
 class FishnetDataset(Dataset):
-    def __init__(self, labels_file, bucket_name, gcp_cred_path, transform=None):
+    def __init__(self, labels_file, bucket_name, gcp_cred_path, transform=None, resize_shape: tuple = (400, 800)):
         self.label_dict = json.load(open(labels_file))
         self.label_list = list(self.label_dict.keys())
         self.bucket_name = bucket_name
@@ -16,6 +15,7 @@ class FishnetDataset(Dataset):
         os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = gcp_cred_path
         self.storage_client = storage.Client()
         self.bucket = self.storage_client.bucket(bucket_name)
+        self.resize_shape = resize_shape
 
     def __len__(self):
         return len(self.label_dict)
@@ -27,6 +27,10 @@ class FishnetDataset(Dataset):
         # Convert bytes to an image
         img = Image.open(io.BytesIO(img_bytes)).convert('RGB')
 
+        # Find the resizing scales for x and y
+        x_scale = self.resize_shape[1] / img.size[0]
+        y_scale = self.resize_shape[0] / img.size[1]
+
         # Transform, if any
         if self.transform:
             img = self.transform(img)
@@ -34,7 +38,18 @@ class FishnetDataset(Dataset):
         # Get the label
         target = self.label_dict[self.label_list[idx]][1]
 
+        # Scale the bounding boxes
+        for i in range(len(target)):
+            for j in range(2):
+                target[i][0][j] = str(int(int(target[i][0][j]) * x_scale))
+                target[i][1][j] = str(int(int(target[i][1][j]) * y_scale))
+
+        # Pad the target with missing values
+        while len(target) < 20:
+            target.append([["-1","-1"], ["-1","-1"], "Missing"])
+
         return img, target
+
 
 
 
