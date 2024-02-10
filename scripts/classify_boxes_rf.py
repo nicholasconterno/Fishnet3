@@ -11,7 +11,7 @@ import joblib
 import matplotlib.pyplot as plt
 
 # Define the class to id mapping
-class_to_id = {'Human': 1, 'Swordfish': 2, 'Albacore': 3, 'Yellowfin tuna': 4, 'No fish': 5, 'Mahi mahi': 6, 'Skipjack tuna': 7, 'Unknown': 8, 'Wahoo': 9, 'Bigeye tuna': 10, 'Striped marlin': 11, 'Opah': 12, 'Blue marlin': 13, 'Escolar': 14, 'Shark': 15, 'Tuna': 16, 'Water': 17, 'Oilfish': 18, 'Pelagic stingray': 19, 'Marlin': 20, 'Great barracuda': 21, 'Shortbill spearfish': 22, 'Indo Pacific sailfish': 23, 'Lancetfish': 24, 'Long snouted lancetfish': 25, 'Black marlin': 26}
+class_to_id = {'Human': 0, 'Swordfish': 1, 'Albacore': 2, 'Yellowfin tuna': 3, 'No fish': 4, 'Mahi mahi': 5, 'Skipjack tuna': 6, 'Unknown': 7, 'Wahoo': 8, 'Bigeye tuna': 9, 'Striped marlin': 10, 'Opah': 11, 'Blue marlin': 12, 'Escolar': 13, 'Shark': 14, 'Tuna': 15, 'Water': 16, 'Oilfish': 17, 'Pelagic stingray': 18, 'Marlin': 19, 'Great barracuda': 20, 'Shortbill spearfish': 21, 'Indo Pacific sailfish': 22, 'Lancetfish': 23, 'Long snouted lancetfish': 24, 'Black marlin': 25}
 # Adjust this function to correctly map identifiers to file paths
 def get_image_path(identifier):
     # Adjust the directory and file extension as needed
