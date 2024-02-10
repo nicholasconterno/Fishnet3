@@ -101,12 +101,12 @@ if __name__ == '__main__':
 
     print("Training the classifier...")
     # Train the RandomForestClassifier for multi-class
-    clf = RandomForestClassifier(n_estimators=100, criterion='entropy')
+    clf = RandomForestClassifier(n_estimators=100, criterion='gini')
     clf.fit(X_train_scaled, y_train)
 
     # Save the classifier
-    joblib.dump(clf, 'saved_models/randomforest_classifier32_entropy.pkl')
-    print("Classifier saved to randomforest_classifier32_entropy.pkl")
+    joblib.dump(clf, 'saved_models/randomforest_classifier48_2.pkl')
+    print("Classifier saved to randomforest_classifier48_2.pkl")
     
     # Test the classifier
     y_pred = clf.predict(X_test_scaled)

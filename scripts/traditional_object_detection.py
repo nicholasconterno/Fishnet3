@@ -63,13 +63,18 @@ def process_image(image_path, clf, window_size=(64, 64), step_size=16, show_imag
         features = extract_hog_features(window_input).reshape(1, -1)
         pred = clf.predict(features)
         
-        # if high probability, save the box
+        # get probability
         proba = clf.predict_proba(features)[0]
+
+        # get non-human prediction
+        # proba_nonhuman = proba[1:]
+        # if np.max(proba_nonhuman) > proba_threshold:
+        #     print(f"Detected {np.argmax(proba_nonhuman)},{list(class_to_id.keys())[np.argmax(proba_nonhuman)]} at {x}, {y} with probability {np.max(proba_nonhuman)}")
+        #     detected_boxes.append((x, y, window_size[0], window_size[1], np.argmax(proba_nonhuman), np.max(proba_nonhuman)))
         
+        # if the probability is high enough, save the box
         if np.max(proba) >= proba_threshold:
-            print(f"Detected {pred},{list(class_to_id.keys())[pred[0]]} at {x}, {y} with probability {np.max(proba)}")
-            # map pred to class name
-            
+            print(f"Detected,{list(class_to_id.keys())[pred[0]]} at {x}, {y} with probability {np.max(proba)}")
             detected_boxes.append((x, y, window_size[0], window_size[1], pred[0], np.max(proba)))
 
     detected_boxes = np.array(detected_boxes)
@@ -104,6 +109,6 @@ def process_image(image_path, clf, window_size=(64, 64), step_size=16, show_imag
 
 if __name__ == "__main__":
     # Load the classifier
-    clf = joblib.load('saved_models/randomforest_classifier.pkl')
+    clf = joblib.load('saved_models/randomforest_classifier48_2.pkl')
     # Have the user select an image to process
-    process_image('data/test_images/dab2c170-db28-11ea-bc88-6fdfea10cd25.jpg', clf)
+    process_image('data/test_images/dab2c170-db28-11ea-bc88-6fdfea10cd25.jpg', clf, classifier_size=48)
