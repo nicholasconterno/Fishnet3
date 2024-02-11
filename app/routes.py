@@ -45,5 +45,10 @@ def upload_file():
 
 @app_routes.route('/display/<filename>')
 def display_image(filename):
+    
+    return render_template('display_image.html', filename=filename)
+
+@app_routes.route('/processed/<filename>')
+def serve_processed_image(filename):
     return send_from_directory(IMG_FOLDER, filename)
 

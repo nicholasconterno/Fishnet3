@@ -63,8 +63,8 @@ def plot_bounding_boxes(image_in, results):
         line_type = 2
         
         image_labeled = cv2.putText(image_boxed, label_text, position, cv2.FONT_HERSHEY_SIMPLEX, font_scale, font_color, line_type)
-
-    return image_labeled
+        image_colorfixed = cv2.cvtColor(image_labeled, cv2.COLOR_RGB2BGR)
+    return image_colorfixed
 
 
 def process_image(file, temp_folder_path):
