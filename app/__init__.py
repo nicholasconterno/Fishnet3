@@ -2,6 +2,9 @@ from flask import Flask
 import os
 
 def create_app():
+    '''
+    Initialize the Flask application.
+    '''
     app = Flask(__name__)
 
     from .routes import app_routes, IMG_FOLDER

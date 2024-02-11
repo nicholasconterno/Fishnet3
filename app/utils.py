@@ -40,9 +40,6 @@ def load_model(model_weights_path=None):
     
     return model
 
-import cv2
-import numpy as np
-
 def plot_bounding_boxes(image_in, results, x_scale, y_scale):
     '''
     Plot the bounding boxes and labels of the detected objects.

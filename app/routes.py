@@ -10,15 +10,24 @@ IMG_FOLDER = os.path.join(os.getcwd(), 'app/temp_images')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 def allowed_file(filename):
+    '''
+    Check if the file extension is allowed.
+    '''
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app_routes.route('/')
 def index():
+    '''
+    Endpoint to render the index page.
+    '''
     return render_template('upload.html')
 
 @app_routes.route('/upload', methods=['POST'])
 def upload_file():
+    '''
+    Endpoint to upload a file and process it with object detection.
+    '''
     if 'file' not in request.files:
         return render_template('upload.html', message='No file part. Please try again.')
 
@@ -45,10 +54,15 @@ def upload_file():
 
 @app_routes.route('/display/<filename>')
 def display_image(filename):
-    
+    '''
+    Endpoint to display the processed image.
+    '''
     return render_template('display_image.html', filename=filename)
 
 @app_routes.route('/processed/<filename>')
 def serve_processed_image(filename):
+    '''
+    Endpoint to serve the processed image.
+    '''
     return send_from_directory(IMG_FOLDER, filename)
 
