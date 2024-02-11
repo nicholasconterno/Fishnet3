@@ -5,6 +5,7 @@ data/foid_labels_v100.zip
 data/test_images/
 data/dataset/
 testing/
+saved_models/
 fishnet3-56e06381ff35.json
 data/best_model.pth
 
