@@ -5,6 +5,7 @@ from skimage.feature import hog
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
+from imblearn.ensemble import BalancedRandomForestClassifier
 from sklearn.metrics import classification_report, accuracy_score
 from dataloading import load_data_json
 import joblib
@@ -86,7 +87,7 @@ def build_features_and_labels(df, show_images=False, size=32):
 
 if __name__ == '__main__':
     dict, label_df = load_data_json('data/labels.json')
-    features, labels = build_features_and_labels(label_df, show_images=False, size=48)
+    features, labels = build_features_and_labels(label_df, show_images=False, size=32)
     print(f"Features shape: {features.shape}, Labels shape: {labels.shape}")
 
     # Split data into training and testing sets
@@ -101,12 +102,13 @@ if __name__ == '__main__':
 
     print("Training the classifier...")
     # Train the RandomForestClassifier for multi-class
-    clf = RandomForestClassifier(n_estimators=100, criterion='gini')
+    # clf = RandomForestClassifier(n_estimators=100, criterion='gini')
+    clf = BalancedRandomForestClassifier(n_estimators=50)
     clf.fit(X_train_scaled, y_train)
 
     # Save the classifier
-    joblib.dump(clf, 'saved_models/randomforest_classifier48_2.pkl')
-    print("Classifier saved to randomforest_classifier48_2.pkl")
+    joblib.dump(clf, 'saved_models/balancedrandomforest_50_classifier32.pkl')
+    print("Classifier saved to balancedrandomforest_50_classifier32.pkl")
     
     # Test the classifier
     y_pred = clf.predict(X_test_scaled)

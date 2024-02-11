@@ -47,7 +47,7 @@ def non_maximum_suppression(boxes, overlapThresh):
     return boxes[pick].astype("int")
 
 # Define the main processing function
-def process_image(image_path, clf, window_size=(64, 64), step_size=16, show_images=True, nms_threshold=0.5, classifier_size=32, proba_threshold=0.99):
+def process_image(image_path, clf, window_size=(128, 128), step_size=16, show_images=True, nms_threshold=0.5, classifier_size=32, proba_threshold=0.99):
     image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
     if image is None:
         print(f"Error loading image: {image_path}")
@@ -76,6 +76,11 @@ def process_image(image_path, clf, window_size=(64, 64), step_size=16, show_imag
         if np.max(proba) >= proba_threshold:
             print(f"Detected,{list(class_to_id.keys())[pred[0]]} at {x}, {y} with probability {np.max(proba)}")
             detected_boxes.append((x, y, window_size[0], window_size[1], pred[0], np.max(proba)))
+        
+        # if the predicted class is not (not-fish), save the box
+        # if pred[0] != 4:
+        #     print(f"Detected,{list(class_to_id.keys())[pred[0]]} at {x}, {y} with probability {np.max(proba)}")
+        #     detected_boxes.append((x, y, window_size[0], window_size[1], pred[0], np.max(proba)))
 
     detected_boxes = np.array(detected_boxes)
     detected_objects = []
@@ -109,6 +114,6 @@ def process_image(image_path, clf, window_size=(64, 64), step_size=16, show_imag
 
 if __name__ == "__main__":
     # Load the classifier
-    clf = joblib.load('saved_models/randomforest_classifier48_2.pkl')
+    clf = joblib.load('saved_models/balancedrandomforest_50_classifier32.pkl')
     # Have the user select an image to process
-    process_image('data/test_images/dab2c170-db28-11ea-bc88-6fdfea10cd25.jpg', clf, classifier_size=48)
+    process_image('data/test_images/dab2c170-db28-11ea-bc88-6fdfea10cd25.jpg', clf, classifier_size=32, proba_threshold=0.121)
