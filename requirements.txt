@@ -1,6 +1,11 @@
-pytest
-
 flask
 flask-cors
 
 python-dotenv
+
+torch 
+torchvision 
+torchaudio
+
+opencv-python
+numpy
