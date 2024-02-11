@@ -1,42 +1,35 @@
-import torch
 import json
 from google.cloud import storage
 import os
+import pandas as pd
 
 def load_data_json(file_path):
     """
     Load the JSON file from the given file path.
-    TODO: Upadate to fit the actual data format
     Args:
         file_path: str, path to the JSON file
 
     Returns:
         dict: data from the JSON file
+        df: DataFrame of the data
     """
-    with open(file_path, 'r') as file:
-        data = json.load(file)
-    return data
+    label_dict = json.load(open(file_path))
+    file_list = list(label_dict.keys())
 
-def create_dataloaders(data):
-    """
-    Create the dataloaders for the training, validation, and test sets.
+    # print(f"Loaded {len(file_list)} labels from {file_path}")
+    # print(f"Example label: {file_list[0]}")
+    # print(f"Example label data: {label_dict[file_list[0]]}")
+    # print(f"Example label data no is_fish: {label_dict[file_list[0]][1:][0]}")
 
-    Args:
-        data: dict, data from the JSON file
+    # Create dataframe from the label_dict data (without the is_fish column)
+    label_list = []
+    for file in file_list:
+        label_list.append(label_dict[file][1:][0])
 
-    Returns:
-        dict: dataloaders for the training, validation, and test sets
-    """
-    # split data in to train, val, and test using scikit-learn
-    # TODO: Implement the split
+    df = pd.DataFrame({'image': file_list, 'label': label_list})
+    print(df.head(2))
 
-    # Create the dataloaders
-    dataloaders = {
-        'train': torch.utils.data.DataLoader(data['train'], batch_size=32, shuffle=True, num_workers=2),
-        'val': torch.utils.data.DataLoader(data['val'], batch_size=32, shuffle=False, num_workers=2),
-        'test': torch.utils.data.DataLoader(data['test'], batch_size=32, shuffle=False, num_workers=2)
-    }
-    return dataloaders
+    return label_dict, df
 
 def get_file_from_gcp(image_name, destination_location, bucket_name='fishnet3-object-detection'):
     """
@@ -59,9 +52,13 @@ def get_file_from_gcp(image_name, destination_location, bucket_name='fishnet3-ob
     return os.path.join(destination_location, full_name)
 
 if __name__ == '__main__':
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "C:/Users/nickj/Documents/Duke/Masters/AIPI540/Fishnet3/fishnet3-56e06381ff35.json"
-    # Get the files from the GCP bucket
-    image_name = 'da4bce02-db28-11ea-b26e-1f17bea1cdba'
-    destination_location = 'data/test_images/'
-    new_file = get_file_from_gcp(image_name, destination_location)
-    print(f"File downloaded to {new_file}.")
+    # os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "C:/Users/nickj/Documents/Duke/Masters/AIPI540/Fishnet3/fishnet3-56e06381ff35.json"
+    # # Get the files from the GCP bucket
+    # image_name = 'da4bce02-db28-11ea-b26e-1f17bea1cdba'
+    # destination_location = 'data/test_images/'
+    # new_file = get_file_from_gcp(image_name, destination_location)
+    # print(f"File downloaded to {new_file}.")
+
+    # Load the JSON file
+    file_path = 'data/labels.json'
+    label_dict, label_df = load_data_json(file_path)
