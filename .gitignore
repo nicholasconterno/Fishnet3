@@ -7,6 +7,8 @@ data/dataset/
 testing/
 saved_models/
 fishnet3-56e06381ff35.json
+app/temp_images/
+app/models/best_model.pth
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
