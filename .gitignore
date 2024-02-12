@@ -10,6 +10,7 @@ fishnet3-56e06381ff35.json
 data/best_model.pth
 app/temp_images/
 app/models/
+data/test_imgs
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
