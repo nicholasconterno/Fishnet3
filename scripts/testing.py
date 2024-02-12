@@ -125,4 +125,4 @@ def best_model_testing(img_folder):
         json.dump(inference_results, file, indent=4)
 
 
-best_model_testing('../data/test_imgs')
+mean_model_testing('../data/test_imgs')
