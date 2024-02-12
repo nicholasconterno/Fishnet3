@@ -16,7 +16,7 @@ def object_detect(image_path, all_models=True):
     # Process the image with Faster R-CNN
     faster_rcnn_pth = os.path.join(os.getcwd(), 'app/models/best_model.pth')
     if all_models:
-        rcnn_img_name = process_image_rcnn(image_path, faster_rcnn_pth)
+        rcnn_img_name = process_image_rcnn(image_path, faster_rcnn_pth, thresh=0.5)
     else:
         rcnn_img_name = 'not_used'
 
