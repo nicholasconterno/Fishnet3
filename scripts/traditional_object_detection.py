@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import joblib
-from classify_boxes_rf import extract_hog_features, class_to_id
+from scripts.rf_classifier_train import extract_hog_features, class_to_id
 
 def sliding_window(image, step_size, window_size):
     '''
