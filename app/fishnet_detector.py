@@ -159,7 +159,7 @@ class FishnetDetector:
         ax.axis('off')
         # Save the figure
         if save_path:
-            plt.savefig(save_path, bbox_inches='tight')
+            fig.savefig(save_path, bbox_inches='tight')
             print(f"Annotated image saved to {save_path}")
         else:
             plt.show()

@@ -6,21 +6,21 @@
 </head>
 <body>
     <div class="centered-container">
-        <h1>Upload Image to predict bounding boxes and</h1>
+        <h1>Upload Image to perform object detection on fishing scene</h1>
         <div id="subheader">
-            <p>Object detection with 25 classes using FasterRCNN Transfer Learning. 
+            <p>Object detection with 26 classes using FasterRCNN Transfer Learning. 
                 Training Images are from The Natrue Conservancy (www.Fishnet.ai)</p>
         </div>
         <form method="post" action="{{ url_for('app_routes.upload_file') }}" enctype="multipart/form-data">
             <label for="file">Image:</label>
-            <input type="file" id="file" name="file" required><br><br>
-
+            <input type="file" id="file" name="file" required><br>
+            <label><input type="checkbox" name="all_models"> Generate using all three models?</label>
+            <br><br>
             <input type="submit" value="Upload">
         </form>
     </div>
     {% if message %}
         <input type="hidden" id="uploadMessage" value="{{ message }}">
-
         <script type="text/javascript">
             document.addEventListener('DOMContentLoaded', function() {
                 var uploadMessage = document.getElementById('uploadMessage').value;

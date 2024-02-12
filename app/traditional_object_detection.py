@@ -63,11 +63,14 @@ def non_maximum_suppression(boxes, thresh):
     area = (x2 - x1 + 1) * (y2 - y1 + 1)
     idxs = np.argsort(y2)
     
+    # Keep looping while some indexes still remain in the indexes list
     while len(idxs) > 0:
         last = len(idxs) - 1
         i = idxs[last]
+        # Add the index value to the list of picked indexes
         pick.append(i)
         
+        # Find the largest (x, y) coordinates for the start of the bounding box and the smallest (x, y) coordinates for the end of the bounding box
         xx1 = np.maximum(x1[i], x1[idxs[:last]])
         yy1 = np.maximum(y1[i], y1[idxs[:last]])
         xx2 = np.minimum(x2[i], x2[idxs[:last]])
@@ -80,7 +83,7 @@ def non_maximum_suppression(boxes, thresh):
         
         idxs = np.delete(idxs, np.concatenate(([last], np.where(overlap > thresh)[0])))
         
-    return boxes[pick].astype("int")
+    return boxes[pick]
 
 def process_image(image_path, rf_path, window_size=(128, 128), step_size=16, nms_threshold=0.5, classifier_size=32, proba_threshold=0.99, output_path=None):
     '''
@@ -126,30 +129,26 @@ def process_image(image_path, rf_path, window_size=(128, 128), step_size=16, nms
             detected_boxes.append((x, y, window_size[0], window_size[1], pred[0], np.max(proba)))
         
     detected_boxes = np.array(detected_boxes)
-    detected_objects = []
     if output_path:
-        plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+        # Draw the boxes on the image and save it
+        fig, ax = plt.subplots()
+        ax.imshow(image, cmap='gray')
         if len(detected_boxes) > 0:
             # Apply NMS
-            nms_boxes = non_maximum_suppression(detected_boxes[:, :4], nms_threshold)
+            nms_boxes = non_maximum_suppression(detected_boxes, nms_threshold)
 
             # Draw the boxes
-            plt.imshow(image)
-            for (x, y, w, h) in nms_boxes:
-                plt.gca().add_patch(plt.Rectangle((x, y), w, h, edgecolor='r', facecolor='none'))
-                detected_objects.append((x, y, w, h))
-
-            # plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
-            # for (x, y, w, h, label, proba) in detected_boxes:
-            #     # Draw rectangle
-            #     plt.gca().add_patch(plt.Rectangle((x, y), w, h, edgecolor='r', facecolor='none'))
-
-            #     # Label with class name and probability
-            #     class_name = [key for key, value in class_to_id.items() if value == label][0]
-            #     class_name = [key for key, value in class_to_id.items() if value == label][0]
-            #     label_text = f"{class_name}: {proba:.2f}"
-            #     plt.text(x, y - 5, label_text, color='white', fontsize=8, bbox=dict(facecolor='red', alpha=0.5))
-            plt.tight_layout()
-        plt.savefig(output_path)
+            for (x, y, w, h, lbel, proba) in nms_boxes:
+                ax.add_patch(plt.Rectangle((x, y), w, h, edgecolor='r', facecolor='none'))
+                # Label with class name and probability
+                class_name = id_to_class[lbel]
+                label_text = f"{class_name}: {proba:.2f}"
+                ax.text(x, y - 5, label_text, color='white', fontsize=8, bbox=dict(facecolor='red', alpha=0.5))
+        
+        fig.tight_layout()
+        # remove axis
+        ax.axis('off')
+        fig.savefig(output_path, bbox_inches='tight')
         print(f"Annotated image saved to {output_path}")
-    return detected_objects
+
+    return nms_boxes

@@ -34,6 +34,9 @@ def upload_file():
         return render_template('upload.html', message='No file part. Please try again.')
 
     file = request.files['file']
+    # Check if 'all_models' checkbox was checked
+    is_allmodels = 'all_models' in request.form
+    print(f"Using all models: {is_allmodels}")
 
     if file.filename == '':
         return render_template('upload.html', message='No selected file. Please try again.')
@@ -44,16 +47,26 @@ def upload_file():
         print(f"Saving file to {filepath}")
         file.save(filepath)
 
-        # Process the image with object detection and keep new filename
-        rcnn_img_name, fishnet_img_name, rf_img_name = object_detect(filepath)
-        print(f"Processed images: {rcnn_img_name}, {fishnet_img_name}, {rf_img_name}")
-        if rcnn_img_name and fishnet_img_name and rf_img_name:
-            # Redirect to the display page with the processed image filenames
-            filenames = [rcnn_img_name, fishnet_img_name, rf_img_name]
-            params = '&'.join(['filename=' + filename for filename in filenames])
-            return redirect(url_for('app_routes.display') + '?' + params)
+        if is_allmodels:
+            # Process the image with object detection and keep new filename
+            rcnn_img_name, fishnet_img_name, rf_img_name = object_detect(filepath, all_models=True)
+            print(f"Processed images: {rcnn_img_name}, {fishnet_img_name}, {rf_img_name}")
+            if rcnn_img_name and fishnet_img_name and rf_img_name:
+                # Redirect to the display page with the processed image filenames
+                filenames = [rcnn_img_name, fishnet_img_name, rf_img_name]
+                params = '&'.join(['filename=' + filename for filename in filenames])
+                return redirect(url_for('app_routes.display') + '?' + params)
+            else:
+                return render_template('upload.html', message='Something went wrong. Please try again.')
         else:
-            return render_template('upload.html', message='Something went wrong. Please try again.')
+            # Process with only fishnet detector
+            rcnn_img_name, fishnet_img_name, rf_img_name = object_detect(filepath, all_models=False)
+            print(f"Processed images: {rcnn_img_name}, {fishnet_img_name}, {rf_img_name}")
+            if fishnet_img_name:
+                # Redirect to the display page with the processed image filenames
+                return redirect(url_for('app_routes.display') + '?filename=' + fishnet_img_name)
+            else:
+                return render_template('upload.html', message='Something went wrong. Please try again.')
     else:
         return render_template('upload.html', message='File type not allowed. Please try again with a valid image file.')
 
@@ -61,8 +74,11 @@ def upload_file():
 def display():
     # Retrieve filenames from query parameters
     filenames = request.args.getlist('filename')  # This gets all 'filename' query params as a list
+    print(f"Displaying images: {filenames}")
     if len(filenames) == 3:
         return render_template('display_images.html', rcnn_file=filenames[0], fishnet_file=filenames[1], rf_file=filenames[2])
+    elif len(filenames) == 1:
+        return render_template('display_single.html', fishnet_file=filenames[0])
     else:
         return "Error: Invalid number of filenames provided.", 400
     

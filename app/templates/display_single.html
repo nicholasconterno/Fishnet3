@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Processed Image</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='form-style.css') }}">
+</head>
+<body>
+    <div class="centered-container">
+        <h1>FishNet Processed Output</h1>
+        <img src="{{ url_for('app_routes.serve_processed_image', filename=fishnet_file) }}" alt="FishNet Processed Image">
+        <br>
+        <a href="{{ url_for('app_routes.index') }}"><button>Upload Another Image</button></a>
+    </div>
+</body>
+</html>
