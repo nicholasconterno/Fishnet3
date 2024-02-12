@@ -1,11 +1,11 @@
 from flask import Blueprint, request, render_template, redirect, url_for, session, send_from_directory
 from werkzeug.utils import secure_filename
 import os
-from .utils import process_image
+from .utils import object_detect
 
 app_routes = Blueprint('app_routes', __name__)
 
-# Configure your Flask application to save uploaded files
+# Folder to save the uploaded images temporarily
 IMG_FOLDER = os.path.join(os.getcwd(), 'app/temp_images')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
@@ -19,7 +19,7 @@ def allowed_file(filename):
 @app_routes.route('/')
 def index():
     '''
-    Endpoint to render the index page.
+    Endpoint to render the main page.
     '''
     return render_template('upload.html')
 
@@ -43,21 +43,21 @@ def upload_file():
         file.save(filepath)
 
         # Process the image with object detection and keep new filename
-        processed_image_path, processed_image_name = process_image(filepath, IMG_FOLDER)
-        if processed_image_path:
-            processed_filename = os.path.basename(processed_image_path)
-            return redirect(url_for('app_routes.display_image', filename=processed_filename))
+        rcnn_img_name, fishnet_img_name, rf_img_name = object_detect(filepath)
+        print(f"Processed images: {rcnn_img_name}, {fishnet_img_name}, {rf_img_name}")
+        if rcnn_img_name and fishnet_img_name and rf_img_name:
+            return redirect(url_for('app_routes.display_image', filenames=[rcnn_img_name, fishnet_img_name, rf_img_name]))
         else:
             return render_template('upload.html', message='Something went wrong. Please try again.')
     else:
         return render_template('upload.html', message='File type not allowed. Please try again with a valid image file.')
 
 @app_routes.route('/display/<filename>')
-def display_image(filename):
+def display_images(filenames):
     '''
     Endpoint to display the processed image.
     '''
-    return render_template('display_image.html', filename=filename)
+    return render_template('display_images.html', filenames=filenames)
 
 @app_routes.route('/processed/<filename>')
 def serve_processed_image(filename):

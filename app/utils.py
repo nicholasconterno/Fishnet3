@@ -1,144 +1,37 @@
+from faster_rcnn import process_image as process_image_rcnn
+from fishnet_detector import FishnetDetector
+from traditional_object_detection import process_image as process_image_rf
+from routes import IMG_FOLDER
 import os
-import dotenv
-from torchvision.models.detection import fasterrcnn_resnet50_fpn
-from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
-import cv2
-import torch
-import numpy as np
-from PIL import Image
-from torchvision import transforms
-
-# Load environment variables
-dotenv.load_dotenv()
 
 # Original class to ID mapping
 class_to_id = {'Human': 0, 'Swordfish': 1, 'Albacore': 2, 'Yellowfin tuna': 3, 'No fish': 4, 'Mahi mahi': 5, 'Skipjack tuna': 6, 'Unknown': 7, 'Wahoo': 8, 'Bigeye tuna': 9, 'Striped marlin': 10, 'Opah': 11, 'Blue marlin': 12, 'Escolar': 13, 'Shark': 14, 'Tuna': 15, 'Water': 16, 'Oilfish': 17, 'Pelagic stingray': 18, 'Marlin': 19, 'Great barracuda': 20, 'Shortbill spearfish': 21, 'Indo Pacific sailfish': 22, 'Lancetfish': 23, 'Long snouted lancetfish': 24, 'Black marlin': 25}
 # Create inverse mapping from ID to class name
 id_to_class = {v: k for k, v in class_to_id.items()}
 
-def load_model(model_weights_path=None):
+def object_detect(image_path):
     '''
-    Load the Faster R-CNN model with a ResNet-50-FPN backbone.
+    Process the input image with object detection using Faster R-CNN, FishNet and ML Approaches.
     Args:
-        model_weights_path: str, path to the model weights
+        image_path: str, path to the input image file
+        img_folder: str, path to the folder to save the processed images
     Returns:
-        model: torch model, Faster R-CNN model
+        str: path to the processed image,
     '''
-    # Load the model
-    model = fasterrcnn_resnet50_fpn(weights="FasterRCNN_ResNet50_FPN_Weights.DEFAULT")
-    # Change the final head
-    in_features = model.roi_heads.box_predictor.cls_score.in_features
-    num_classes = 26
-    model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
+    # Process the image with Faster R-CNN
+    faster_rcnn_pth = os.path.join(os.getcwd(), 'app/models/best_model.pth')
+    rcnn_img_name = process_image_rcnn(image_path, faster_rcnn_pth)
 
-    # Set the model to evaluation mode
-    model.eval()
-
-    # Load the model weights if a path is provided
-    if model_weights_path:
-        model.load_state_dict(torch.load(model_weights_path, map_location=torch.device('cpu')))
+    # Process the image with FishNet
+    FishNet = FishnetDetector(model_path=faster_rcnn_pth, device='cpu')
+    fishnet_img_name = f'fishnet_{os.path.basename(image_path)}'
+    fishnet_img_path = os.path.join(IMG_FOLDER, fishnet_img_name)
+    FishNet.detect(image_path, thresh=0.8, output_img_path=fishnet_img_path, show_labels=True)
     
-    return model
-
-def plot_bounding_boxes(image_in, results, x_scale, y_scale):
-    '''
-    Plot the bounding boxes and labels of the detected objects.
-    Args:
-        image_in: np.array, input image
-        results: dict, detection results
-        x_scale: float, scaling factor for the x-axis
-        y_scale: float, scaling factor for the y-axis
-    Returns:
-        np.array: image with bounding boxes and labels
-    '''
-    # Ensure results is not empty and contains the expected structure
-    if not results or 'boxes' not in results[0] or 'labels' not in results[0] or 'scores' not in results[0]:
-        print("Invalid results format.")
-        return image_in
+    # Process the image with traditional object detection
+    rf_model = 'models/randomforest_classifier32.pkl'
+    rf_img_name = f'rf_{os.path.basename(image_path)}'
+    rf_img_path = os.path.join(IMG_FOLDER, rf_img_name)
+    process_image_rf(image_path, rf_model, output_path=rf_img_path)
     
-    # Get detections for the first image in the batch
-    detections = results[0]
-    
-    # Plot bounding boxes and labels of the detected objects
-    for box, label, score in zip(detections['boxes'], detections['labels'], detections['scores']):
-        # Convert tensor to numpy array and to integer coordinates
-        box = box.cpu().numpy().astype(np.int32)
-        label = label.item()  # Convert to Python scalar
-        score = score.item()  # Convert to Python scalar
-        
-        # Scale the bounding boxes
-        box = [int(box[0] * x_scale), int(box[1] * y_scale),
-               int(box[2] * x_scale), int(box[3] * y_scale)]
-        
-        # Draw rectangle
-        start_point = (box[0], box[1])
-        end_point = (box[2], box[3])
-        color = (255, 0, 0)  # Red
-        thickness = 2
-        
-        image_boxed = cv2.rectangle(image_in, start_point, end_point, color, thickness)
-        
-        # Get the class name
-        class_name = id_to_class[label]
-        # Label with class name and probability
-        label_text = f"{class_name}: {score:.2f}"
-        position = (box[0], box[1] - 10)  # Position for text is slightly above the top-left corner of the box
-        font_scale = 0.5
-        font_color = (255, 0, 0)  # Red 
-        line_type = 1
-        
-        image_labeled = cv2.putText(image_boxed, label_text, position, cv2.FONT_HERSHEY_SIMPLEX, font_scale, font_color, line_type)
-        image_colorfixed = cv2.cvtColor(image_labeled, cv2.COLOR_RGB2BGR)
-    return image_colorfixed
-
-
-def process_image(file, temp_folder_path):
-    '''
-    Process the input image using the Faster R-CNN model.
-    Args:
-        file: str, path to the input image file
-        temp_folder_path: str, path to the temporary folder
-    Returns:
-        str: path to the processed image
-    '''
-    # load model
-    model_pth = os.path.join(os.getcwd(), 'app/models/best_model.pth')
-    model = load_model(model_pth)
-    print(f"Model loaded from {model_pth}")
-    # Load the image
-    # Load the image with OpenCV
-    image_cv = cv2.imread(file)
-    original_dims = image_cv.shape[:2]
-    # Convert BGR (OpenCV default) image to RGB
-    image_cv_rgb = cv2.cvtColor(image_cv, cv2.COLOR_BGR2RGB)
-    # Convert the image to a PIL Image
-    image_pil = Image.fromarray(image_cv_rgb)
-    
-    # Preprocess the image
-    # Define the transforms
-    transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Resize((400, 800))
-    ])
-    # Apply the transforms
-    image_tensor = transform(image_pil).unsqueeze(0)
-
-    # Run the model
-    with torch.no_grad():  # Ensure gradients are not computed
-        results = model(image_tensor)
-    
-    # Calculate scale factors
-    resized_dims = (800, 400)  # Width, Height
-    x_scale = original_dims[1] / resized_dims[0]
-    y_scale = original_dims[0] / resized_dims[1]
-
-    # Plot the bounding boxes
-    image = plot_bounding_boxes(image_cv_rgb, results, x_scale, y_scale)
-    # Save the image
-    input_file_name = os.path.basename(file).split('.')[0]
-    image_name = f'{input_file_name}_processed.jpg'
-    image_path = os.path.join(temp_folder_path, image_name)
-    print(f"Saving processed image to {image_path}")
-    cv2.imwrite(image_path, image)
-    return image_path, image_name
-
+    return rcnn_img_name, fishnet_img_name, rf_img_name

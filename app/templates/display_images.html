@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Processed Image</title>
+</head>
+<body>
+    <h1>Rcnn Output</h1>
+    <img src="{{ url_for('app_routes.serve_processed_image', filename=filenames[0]) }}" alt="Processed Image">
+    <br>
+    <h1>FishNet Output</h1>
+    <img src="{{ url_for('app_routes.serve_processed_image', filename=filenames[0]) }}" alt="Processed Image">
+    <br>
+    <h1>Traditional Output</h1>
+    <img src="{{ url_for('app_routes.serve_processed_image', filename=filenames[1]) }}" alt="Processed Image">
+    <br>
+    <a href="{{ url_for('app_routes.index') }}"><button>Upload Another Image</button></a>
+</body>
+</html>
