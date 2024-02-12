@@ -11,15 +11,15 @@ class FishnetDetector:
     def __init__(self, model_path: str):
         self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
         self.model_old = fasterrcnn_resnet50_fpn(weights="FasterRCNN_ResNet50_FPN_Weights.DEFAULT")
-        self.model_old.eval()
         self.model_old.to(self.device)
+        self.model_old.eval()
         self.model_new = fasterrcnn_resnet50_fpn(weights="FasterRCNN_ResNet50_FPN_Weights.DEFAULT")
         in_features = self.model_new.roi_heads.box_predictor.cls_score.in_features
         num_classes = 26
         self.model_new.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
-        self.model_new.load_state_dict(torch.load(model_path))
-        self.model_new.eval()
+        self.model_new.load_state_dict(torch.load(model_path, map_location=self.device))
         self.model_new.to(self.device)
+        self.model_new.eval()
         self.transform = transforms.Compose([
             transforms.ToTensor()
         ])
@@ -56,7 +56,8 @@ class FishnetDetector:
             if output_img_path:
                 self._display_bounding_boxes(img, combined_outputs, min(thresh_human, thresh_fish), show_labels, output_img_path)
             else:
-                self._display_bounding_boxes(img, combined_outputs, min(thresh_human, thresh_fish), show_labels)
+                pass
+                # self._display_bounding_boxes(img, combined_outputs, min(thresh_human, thresh_fish), show_labels)
         return combined_outputs
     
 
