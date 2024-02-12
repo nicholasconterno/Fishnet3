@@ -29,11 +29,5 @@
             });
         </script>
     {% endif %}
-    {% if filename %}
-    <div>
-        <h2>Processed Image</h2>
-        <img src="{{ url_for('app_routes.display_image', filename=filename) }}" alt="Processed Image">
-    </div>
-    {% endif %}
 </body>
 </html>

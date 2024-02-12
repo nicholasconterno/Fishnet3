@@ -17,7 +17,7 @@ class FishnetDetector:
         in_features = self.model_new.roi_heads.box_predictor.cls_score.in_features
         num_classes = 26
         self.model_new.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
-        self.model_new.load_state_dict(torch.load(model_path))
+        self.model_new.load_state_dict(torch.load(model_path, map_location=self.device))
         self.model_new.eval()
         self.model_new.to(self.device)
         self.transform = transforms.Compose([
@@ -160,23 +160,8 @@ class FishnetDetector:
         # Save the figure
         if save_path:
             plt.savefig(save_path, bbox_inches='tight')
+            print(f"Annotated image saved to {save_path}")
         else:
             plt.show()
-
-
-
-if __name__ == "__main__":
-    # Create a detector using saved weights
-    detector = FishnetDetector(model_path="../data/best_model.pth")
-    # Run inference on an image
-    output = detector.detect(img_path="../data/test_image_2.jpg", 
-                             thresh=0.7,
-                             output_img_path="../data/test_image_2_annotated.jpg",
-                             show_labels=True)
-    
-
-    # Print output in a readable format
-    for i in range(len(output[0]["labels"])):
-        print(f"Label: {output[0]['labels'][i]}, Score: {output[0]['scores'][i]*100:.0f}%, Bounding Box: {output[0]['boxes'][i]}")
 
     

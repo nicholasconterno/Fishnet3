@@ -5,13 +5,13 @@
 </head>
 <body>
     <h1>Rcnn Output</h1>
-    <img src="{{ url_for('app_routes.serve_processed_image', filename=filenames[0]) }}" alt="Processed Image">
+    <img src="{{ url_for('app_routes.serve_processed_image', filename=rcnn_file) }}" alt="Processed Image">
     <br>
     <h1>FishNet Output</h1>
-    <img src="{{ url_for('app_routes.serve_processed_image', filename=filenames[0]) }}" alt="Processed Image">
+    <img src="{{ url_for('app_routes.serve_processed_image', filename=fishnet_file) }}" alt="Processed Image">
     <br>
     <h1>Traditional Output</h1>
-    <img src="{{ url_for('app_routes.serve_processed_image', filename=filenames[1]) }}" alt="Processed Image">
+    <img src="{{ url_for('app_routes.serve_processed_image', filename=rf_file) }}" alt="Processed Image">
     <br>
     <a href="{{ url_for('app_routes.index') }}"><button>Upload Another Image</button></a>
 </body>

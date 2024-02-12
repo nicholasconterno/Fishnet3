@@ -7,9 +7,12 @@ import torch
 import numpy as np
 from PIL import Image
 from torchvision import transforms
-from utils import id_to_class
-from routes import IMG_FOLDER
+from . import IMG_FOLDER
 
+# Original class to ID mapping
+class_to_id = {'Human': 0, 'Swordfish': 1, 'Albacore': 2, 'Yellowfin tuna': 3, 'No fish': 4, 'Mahi mahi': 5, 'Skipjack tuna': 6, 'Unknown': 7, 'Wahoo': 8, 'Bigeye tuna': 9, 'Striped marlin': 10, 'Opah': 11, 'Blue marlin': 12, 'Escolar': 13, 'Shark': 14, 'Tuna': 15, 'Water': 16, 'Oilfish': 17, 'Pelagic stingray': 18, 'Marlin': 19, 'Great barracuda': 20, 'Shortbill spearfish': 21, 'Indo Pacific sailfish': 22, 'Lancetfish': 23, 'Long snouted lancetfish': 24, 'Black marlin': 25}
+# Create inverse mapping from ID to class name
+id_to_class = {v: k for k, v in class_to_id.items()}
 
 # Load environment variables
 dotenv.load_dotenv()
