@@ -21,14 +21,14 @@ class FishnetDetector:
         self.model_new.eval()
         self.model_new.to(self.device)
         self.transform = transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Resize((400, 800))
+            transforms.ToTensor()
         ])
 
 
     def detect(self, 
                img_path: str, 
-               thresh: float = 0.8, 
+               thresh_human: float = 0.8, 
+               thresh_fish: float = 0.5,
                output_img_path: str = None, 
                show_labels: bool = True):
         """
@@ -37,7 +37,8 @@ class FishnetDetector:
 
         Args:
         - img_path: str, the path to the image to run inference on.
-        - thresh: float, the score threshold for displaying bounding boxes.
+        - thresh_human: float, the score threshold for human detection.
+        - thresh_fish: float, the score threshold for fish detection.
         - output_img_path: str, the path to save the annotated image.
         - show_labels: bool, whether to display labels on the image.
         """
@@ -47,15 +48,15 @@ class FishnetDetector:
             outputs_old = self.model_old(img)
             outputs_new = self.model_new(img)
             # Filter outputs by threshold
-            outputs_old = self._filter_outputs_by_threshold(outputs_old, thresh)
-            outputs_new = self._filter_outputs_by_threshold(outputs_new, thresh)
+            outputs_old = self._filter_outputs_by_threshold(outputs_old, thresh_human)
+            outputs_new = self._filter_outputs_by_threshold(outputs_new, thresh_fish)
             # Combine outputs
             combined_outputs = self._combine_outputs(outputs_old, outputs_new)
             # Display bounding boxes
             if output_img_path:
-                self._display_bounding_boxes(img, combined_outputs, thresh, show_labels, output_img_path)
+                self._display_bounding_boxes(img, combined_outputs, min(thresh_human, thresh_fish), show_labels, output_img_path)
             else:
-                self._display_bounding_boxes(img, combined_outputs, thresh, show_labels)
+                self._display_bounding_boxes(img, combined_outputs, min(thresh_human, thresh_fish), show_labels)
         return combined_outputs
     
 
@@ -144,7 +145,7 @@ class FishnetDetector:
         # Create figure and axes
         fig, ax = plt.subplots()
         # Display the image
-        ax.imshow(input_image[0].permute(1, 2, 0).cpu().numpy())  # Adjusted for tensor format (C, H, W)
+        ax.imshow(input_image[0].permute(1, 2, 0).cpu().numpy(), interpolation='nearest')  # Adjusted for tensor format (C, H, W)
 
         # Create a Rectangle patch and label for each cleaned box and add to the plot
         for box, score, label in zip(cleaned_boxes, cleaned_scores, cleaned_labels):
@@ -159,7 +160,7 @@ class FishnetDetector:
         ax.axis('off')
         # Save the figure
         if save_path:
-            plt.savefig(save_path, bbox_inches='tight')
+            plt.savefig(save_path, bbox_inches='tight', dpi=500)
         else:
             plt.show()
 
@@ -169,9 +170,10 @@ if __name__ == "__main__":
     # Create a detector using saved weights
     detector = FishnetDetector(model_path="../data/best_model.pth")
     # Run inference on an image
-    output = detector.detect(img_path="../data/test_image_2.jpg", 
-                             thresh=0.7,
-                             output_img_path="../data/test_image_2_annotated.jpg",
+    output = detector.detect(img_path="../data/test_image.jpg", 
+                             thresh_human=0.8,
+                             thresh_fish=0.6,
+                             output_img_path="../data/test_image_annotated.jpg",
                              show_labels=True)
     
 
