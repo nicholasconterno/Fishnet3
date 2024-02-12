@@ -13,9 +13,16 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
     margin: 0; /* Remove default margin */
+    padding-top: 20px; /* Add top padding */
 }
+
+img {
+    height: 300px; /* Constant height for all images */
+    width: auto; /* Maintain aspect ratio */
+    margin: 10px;
+}
+
 
 /* Center the content area */
 .centered-container {
@@ -25,7 +32,9 @@ body {
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3); /* Soft shadow for depth */
     text-align: center;
     width: 90%;
-    max-width: 600px;
+    max-width: 800px; /* Limit width for better readability */
+    margin-top: 20px; /* Add top margin */
+    margin-bottom: 20px; /* Add bottom margin */
 }
 
 /* Style the subheader */

@@ -13,24 +13,46 @@ import matplotlib.pyplot as plt
 
 # Define the class to id mapping
 class_to_id = {'Human': 0, 'Swordfish': 1, 'Albacore': 2, 'Yellowfin tuna': 3, 'No fish': 4, 'Mahi mahi': 5, 'Skipjack tuna': 6, 'Unknown': 7, 'Wahoo': 8, 'Bigeye tuna': 9, 'Striped marlin': 10, 'Opah': 11, 'Blue marlin': 12, 'Escolar': 13, 'Shark': 14, 'Tuna': 15, 'Water': 16, 'Oilfish': 17, 'Pelagic stingray': 18, 'Marlin': 19, 'Great barracuda': 20, 'Shortbill spearfish': 21, 'Indo Pacific sailfish': 22, 'Lancetfish': 23, 'Long snouted lancetfish': 24, 'Black marlin': 25}
-# Adjust this function to correctly map identifiers to file paths
+
 def get_image_path(identifier):
-    # Adjust the directory and file extension as needed
+    '''
+    Get the image path from the identifier. Adjust to fix the path to the images.
+    Args:
+        identifier: str, image identifier
+    Returns:
+        str: path to the image
+    '''
     return f'./data/foid_images_v100/images/{identifier}.jpg'
 
-# Function to extract HOG features
 def extract_hog_features(image, pixels_per_cell=(8, 8), cells_per_block=(2, 2), orientations=9):
+    '''
+    Extract HOG features from the input image.
+    Args:
+        image: np.array, input image
+        pixels_per_cell: tuple, size of each cell in pixels
+        cells_per_block: tuple, number of cells in each block
+        orientations: int, number of orientation bins
+    Returns:
+        np.array: HOG features
+    '''
     hog_features = hog(image, orientations=orientations, pixels_per_cell=pixels_per_cell,
                        cells_per_block=cells_per_block, block_norm='L2-Hys', transform_sqrt=True, feature_vector=True)
     return hog_features
 
 def build_features_and_labels(df, show_images=False, size=32):
-    # Assuming df is loaded as shown in your printout
+    '''
+    Build Features and Labels for training the random forest classifier. 
+    Extracting HOG features from each bounding box region of the images.
+    Args:
+        df: DataFrame, data with names and bounding boxes
+        show_images: bool, whether to show the images and their segmented bounding boxes
+        size: int, size to resize the images (square)
+    '''
     features = []
     labels = []
 
-    for index, row in df.iterrows():
-        image_path = get_image_path(row['image'])  # Fetch the actual image path
+    for _, row in df.iterrows():
+        image_path = get_image_path(row['image'])  # Fetch the actual image path from the image name
         image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
         if image is None:
             print(f"Error loading image: {image_path}")
@@ -86,6 +108,7 @@ def build_features_and_labels(df, show_images=False, size=32):
 
 
 if __name__ == '__main__':
+    # Load the data
     dict, label_df = load_data_json('data/labels.json')
     features, labels = build_features_and_labels(label_df, show_images=False, size=32)
     print(f"Features shape: {features.shape}, Labels shape: {labels.shape}")
@@ -107,8 +130,9 @@ if __name__ == '__main__':
     clf.fit(X_train_scaled, y_train)
 
     # Save the classifier
-    joblib.dump(clf, 'saved_models/balancedrandomforest_50_classifier32.pkl')
-    print("Classifier saved to balancedrandomforest_50_classifier32.pkl")
+    file_name = 'saved_models/balancedrandomforest_50_classifier32.pkl'
+    joblib.dump(clf, file_name)
+    print(f"Classifier saved to {file_name}.")
     
     # Test the classifier
     y_pred = clf.predict(X_test_scaled)

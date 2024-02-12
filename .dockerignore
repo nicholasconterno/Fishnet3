@@ -1,0 +1,8 @@
+data/
+data-preprocessing/
+notebooks/
+scripts/
+saved_models/
+.venv/
+fishnet3-56e06381ff35.json
+uplodedfiles.txt
