@@ -16,7 +16,7 @@ def object_detect(image_path, all_models=True):
     # Process the image with Faster R-CNN
     faster_rcnn_pth = os.path.join(os.getcwd(), 'app/models/best_model.pth')
     if all_models:
-        rcnn_img_name = process_image_rcnn(image_path, faster_rcnn_pth, thresh=0.5)
+        rcnn_img_name = process_image_rcnn(image_path, faster_rcnn_pth, thresh=0.4)
     else:
         rcnn_img_name = 'not_used'
 
@@ -24,7 +24,7 @@ def object_detect(image_path, all_models=True):
     FishNet = FishnetDetector(model_path=faster_rcnn_pth)
     fishnet_img_name = f'fishnet_{os.path.basename(image_path)}'
     fishnet_img_path = os.path.join(IMG_FOLDER, fishnet_img_name)
-    FishNet.detect(image_path, thresh=0.8, output_img_path=fishnet_img_path, show_labels=True)
+    FishNet.detect(image_path, thresh_human=0.8, thresh_fish=0.6, output_img_path=fishnet_img_path, show_labels=True)
     
     if all_models:
         # Process the image with traditional object detection

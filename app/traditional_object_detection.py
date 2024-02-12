@@ -3,7 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import joblib
 from skimage.feature import hog
-from sklearn.ensemble import RandomForestClassifier
 
 # Original class to ID mapping
 class_to_id = {'Human': 0, 'Swordfish': 1, 'Albacore': 2, 'Yellowfin tuna': 3, 'No fish': 4, 'Mahi mahi': 5, 'Skipjack tuna': 6, 'Unknown': 7, 'Wahoo': 8, 'Bigeye tuna': 9, 'Striped marlin': 10, 'Opah': 11, 'Blue marlin': 12, 'Escolar': 13, 'Shark': 14, 'Tuna': 15, 'Water': 16, 'Oilfish': 17, 'Pelagic stingray': 18, 'Marlin': 19, 'Great barracuda': 20, 'Shortbill spearfish': 21, 'Indo Pacific sailfish': 22, 'Lancetfish': 23, 'Long snouted lancetfish': 24, 'Black marlin': 25}
@@ -148,7 +147,7 @@ def process_image(image_path, rf_path, window_size=(128, 128), step_size=16, nms
         fig.tight_layout()
         # remove axis
         ax.axis('off')
-        fig.savefig(output_path, bbox_inches='tight')
+        fig.savefig(output_path, bbox_inches='tight', pad_inches=0, dpi=500)
         print(f"Annotated image saved to {output_path}")
 
-    return nms_boxes
+    return 1
