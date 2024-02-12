@@ -61,6 +61,7 @@ def plot_bounding_boxes(image_in, results, x_scale, y_scale, threshold=0.8):
     # Get detections for the first image in the batch
     detections = results[0]
     
+    ret_img = cv2.cvtColor(image_in, cv2.COLOR_RGB2BGR)
     # Plot bounding boxes and labels of the detected objects
     for box, label, score in zip(detections['boxes'], detections['labels'], detections['scores']):
         if score > threshold:
@@ -91,8 +92,8 @@ def plot_bounding_boxes(image_in, results, x_scale, y_scale, threshold=0.8):
             line_type = 1
             
             image_labeled = cv2.putText(image_boxed, label_text, position, cv2.FONT_HERSHEY_SIMPLEX, font_scale, font_color, line_type)
-            image_colorfixed = cv2.cvtColor(image_labeled, cv2.COLOR_RGB2BGR)
-    return image_colorfixed
+            ret_img = cv2.cvtColor(image_labeled, cv2.COLOR_RGB2BGR)
+    return ret_img
 
 
 def process_image(file, model_pth, thresh=0.5):
