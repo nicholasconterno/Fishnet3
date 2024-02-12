@@ -10,8 +10,8 @@ def load_data_json(file_path):
         file_path: str, path to the JSON file
 
     Returns:
-        dict: data from the JSON file
-        df: DataFrame of the data
+        dict: data from the JSON file, with the image name as the key
+        df: DataFrame of the data imagename, label
     """
     label_dict = json.load(open(file_path))
     file_list = list(label_dict.keys())
@@ -52,8 +52,8 @@ def get_file_from_gcp(image_name, destination_location, bucket_name='fishnet3-ob
     return os.path.join(destination_location, full_name)
 
 if __name__ == '__main__':
-    # os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "C:/Users/nickj/Documents/Duke/Masters/AIPI540/Fishnet3/fishnet3-56e06381ff35.json"
-    # # Get the files from the GCP bucket
+    # Get the files from the GCP bucket
+    
     # image_name = 'da4bce02-db28-11ea-b26e-1f17bea1cdba'
     # destination_location = 'data/test_images/'
     # new_file = get_file_from_gcp(image_name, destination_location)

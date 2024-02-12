@@ -4,14 +4,29 @@ import matplotlib.pyplot as plt
 import joblib
 from classify_boxes_rf import extract_hog_features, class_to_id
 
-# Define the sliding window function
 def sliding_window(image, step_size, window_size):
+    '''
+    Slide a window across the image.
+    Args:
+        image: np.array, input image
+        step_size: int, step size for the sliding window
+        window_size: tuple, size of the sliding window
+    Yields:
+        tuple: (x, y, window) coordinates and image window
+    '''
     for y in range(0, image.shape[0] - window_size[1], step_size):
         for x in range(0, image.shape[1] - window_size[0], step_size):
             yield (x, y, image[y:y + window_size[1], x:x + window_size[0]])
 
-# Define the Non-Maximum Suppression function
-def non_maximum_suppression(boxes, overlapThresh):
+def non_maximum_suppression(boxes, thresh):
+    '''
+    Apply non-maximum suppression to the bounding boxes.
+    Args:
+        boxes: np.array, bounding boxes
+        thresh: float, threshold for overlapping boxes
+    Returns:
+        np.array: bounding boxes after non-maximum suppression
+    '''
     if len(boxes) == 0:
         return []
     
@@ -42,12 +57,26 @@ def non_maximum_suppression(boxes, overlapThresh):
         
         overlap = (w * h) / area[idxs[:last]]
         
-        idxs = np.delete(idxs, np.concatenate(([last], np.where(overlap > overlapThresh)[0])))
+        idxs = np.delete(idxs, np.concatenate(([last], np.where(overlap > thresh)[0])))
         
     return boxes[pick].astype("int")
 
-# Define the main processing function
 def process_image(image_path, clf, window_size=(128, 128), step_size=16, show_images=True, nms_threshold=0.5, classifier_size=32, proba_threshold=0.99):
+    '''
+    Process the input image using the random forest classifier and sliding window.
+    Create bounding boxes around detected objects and apply non-maximum suppression.
+    Args:
+        image_path: str, path to the input image file
+        clf: classifier, trained random forest classifier
+        window_size: tuple, size of the sliding window
+        step_size: int, step size for the sliding window
+        show_images: bool, whether to show the images
+        nms_threshold: float, threshold for non-maximum suppression
+        classifier_size: int, size to resize the images (square)
+        proba_threshold: float, threshold for the classifier probability
+    Returns:
+        list: detected objects
+    '''
     image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
     if image is None:
         print(f"Error loading image: {image_path}")
@@ -87,12 +116,14 @@ def process_image(image_path, clf, window_size=(128, 128), step_size=16, show_im
     if len(detected_boxes) > 0:
         # Apply NMS
         nms_boxes = non_maximum_suppression(detected_boxes[:, :4], nms_threshold)
+
         if show_images:
             plt.imshow(image, cmap='gray')
             for (x, y, w, h) in nms_boxes:
                 plt.gca().add_patch(plt.Rectangle((x, y), w, h, edgecolor='r', facecolor='none'))
             plt.show()
-    
+
+        # Convert to list of detected objects
         for (x, y, w, h, label, proba) in detected_boxes:
             class_name = [key for key, value in class_to_id.items() if value == label][0]
             detected_objects.append({'x': x, 'y': y, 'w': w, 'h': h, 'label': class_name, 'probability': proba})
@@ -116,4 +147,5 @@ if __name__ == "__main__":
     # Load the classifier
     clf = joblib.load('saved_models/balancedrandomforest_50_classifier32.pkl')
     # Have the user select an image to process
-    process_image('data/test_images/dab2c170-db28-11ea-bc88-6fdfea10cd25.jpg', clf, classifier_size=32, proba_threshold=0.121)
+    image_path = 'data/test_images/dab2c170-db28-11ea-bc88-6fdfea10cd25.jpg'
+    process_image(image_path, clf, classifier_size=32, proba_threshold=0.121)
