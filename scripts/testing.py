@@ -65,7 +65,6 @@ def run_mean_model_inference_on_images(model, image_ids, image_folder):
 
 def run_best_model_inference_on_images(model, image_ids, image_folder):
     results = {}
-    tensor_transform = transforms.ToTensor()
     count = 0
     for image_id in image_ids:
         count+=1
@@ -75,10 +74,8 @@ def run_best_model_inference_on_images(model, image_ids, image_folder):
         # Assuming image files are named with their image IDs
         image_path = f"{image_folder}/{image_id}.jpg"  # Adjust this path format as needed
         image = Image.open(image_path)
-        normalized_image = tensor_transform(image).unsqueeze(0)
 
         model_output = model.detect(image_path, thresh_human=0.8, thresh_fish=0.6)
-        print(model_output)
         formatted_output = format_best_model(model_output)
         results[image_id] = [formatted_output]
 
@@ -125,4 +122,7 @@ def best_model_testing(img_folder):
         json.dump(inference_results, file, indent=4)
 
 
-mean_model_testing('../data/test_imgs')
+
+if __name__ == "__main__":
+    #best_model_testing('../data/test_imgs')  
+    mean_model_testing('../data/test_imgs')

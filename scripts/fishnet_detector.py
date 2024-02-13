@@ -10,6 +10,7 @@ import matplotlib.patches as patches
 class FishnetDetector:
     def __init__(self, model_path: str):
         self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+        print(f"Using device: {self.device}")
         self.model_old = fasterrcnn_resnet50_fpn(weights="FasterRCNN_ResNet50_FPN_Weights.DEFAULT")
         self.model_old.to(self.device)
         self.model_old.eval()
