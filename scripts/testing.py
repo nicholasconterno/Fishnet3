@@ -21,58 +21,48 @@ COCO_INSTANCE_CATEGORY_NAMES = [
     'book', 'clock', 'vase', 'scissors', 'teddy bear', 'hair drier', 'toothbrush'
 ]
 
-def format_model_output(model_output, score_threshold=0.8):
+def format_model_output(model_output, score_threshold=0.0):
     formatted_output = []
     
     boxes = model_output[0]['boxes'].detach().cpu().numpy()
     scores = model_output[0]['scores'].detach().cpu().numpy()
-    labels = model_output[0]['labels'].detach().cpu().numpy()
 
-    for box, label, score in zip(boxes, labels, scores):
+    for box, score in zip(boxes, scores):
         if score >= score_threshold:
-            # Extract bounding box coordinates and round them
             x_min, y_min, x_max, y_max = map(int, box)
-            class_label = COCO_INSTANCE_CATEGORY_NAMES[label]
-            if class_label == 'person':
-                class_label = 'Human'
-
-            # Format according to your required JSON structure
-            detection = [[[str(x_min), str(x_max)], [str(y_min), str(y_max)], class_label]]
-            formatted_output.append(detection)
+            formatted_output.append([[x_min, y_min, x_max, y_max], float(score)])
 
     return formatted_output
 
 
-def format_best_model(model_output, score_threshold=0.8):
+
+def format_best_model(model_output, score_threshold=0.0):
     formatted_output = []
 
-    # Iterate through the detections
-    for box, label, score in zip(model_output[0]['boxes'], model_output[0]['labels'], model_output[0]['scores']):
-        score = score.item()  # Convert tensor to a Python float
+    for box, score in zip(model_output[0]['boxes'], model_output[0]['scores']):
+        score = score.item()
         if score >= score_threshold:
-            # Extract bounding box coordinates and round them
             x_min, y_min, x_max, y_max = map(int, box)
-            
-            # Format according to your required JSON structure
-            detection = [[[str(x_min), str(x_max)], [str(y_min), str(y_max)], label]]
-            formatted_output.append(detection)
+            formatted_output.append([[x_min, y_min, x_max, y_max], float(score)])
 
     return formatted_output
+
 
 
 def run_mean_model_inference_on_images(model, image_ids, image_folder):
     results = {}
     tensor_transform = transforms.ToTensor()
     count = 0
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     for image_id in image_ids:
         count += 1
         if (count+1) % 20 == 0:
-            # break
             print(f"Processed {count+1} images")
         # Assuming image files are named with their image IDs
         image_path = f"{image_folder}/{image_id}.jpg"  # Adjust this path format as needed
         image = Image.open(image_path)
         normalized_image = tensor_transform(image).unsqueeze(0)
+        normalized_image = normalized_image.to(device)
 
         model_output = model(normalized_image)
         
@@ -83,7 +73,6 @@ def run_mean_model_inference_on_images(model, image_ids, image_folder):
 
 def run_best_model_inference_on_images(model, image_ids, image_folder):
     results = {}
-    tensor_transform = transforms.ToTensor()
     count = 0
     for image_id in image_ids:
         count+=1
@@ -91,11 +80,9 @@ def run_best_model_inference_on_images(model, image_ids, image_folder):
             print(f"Processed {count+1} images")
 
         # Assuming image files are named with their image IDs
-        image_path = f"{image_folder}/{image_id}.jpg"  # Adjust this path format as needed
-        image = Image.open(image_path)
-        normalized_image = tensor_transform(image).unsqueeze(0)
+        image_path = f"{image_folder}/{image_id}.jpg" 
 
-        model_output = model.detect(image_path, thresh_human=0.8, thresh_fish=0.6)
+        model_output = model.detect(image_path, thresh_human=0.0, thresh_fish=0.0)
         # print(model_output)
         formatted_output = format_best_model(model_output)
         results[image_id] = [formatted_output]
@@ -107,6 +94,8 @@ def mean_model_testing(img_folder):
     # Load the model
     model = fasterrcnn_resnet50_fpn(weights="FasterRCNN_ResNet50_FPN_Weights.DEFAULT")
     model.eval()
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.to(device)
 
     # Load the test labels JSON
     with open('../data/test_labels.json', 'r') as file:
@@ -120,7 +109,7 @@ def mean_model_testing(img_folder):
     inference_results = run_mean_model_inference_on_images(model, image_ids, image_folder)
 
     # Output the results as JSON
-    with open('../data/mean_model_results.json', 'w') as file:
+    with open('../data/mean_model_results_with_confidence.json', 'w') as file:
         json.dump(inference_results, file, indent=4)
 
 def best_model_testing(img_folder):
@@ -139,8 +128,11 @@ def best_model_testing(img_folder):
     inference_results = run_best_model_inference_on_images(model, image_ids, image_folder)
 
     # Output the results as JSON
-    with open('../data/best_model_results.json', 'w') as file:
+    with open('../data/best_model_results_with_confidence.json', 'w') as file:
         json.dump(inference_results, file, indent=4)
 
 
-mean_model_testing('../data/test_imgs')
+
+if __name__ == "__main__":
+    best_model_testing('../data/test_imgs')
+    #mean_model_testing('../data/test_imgs')

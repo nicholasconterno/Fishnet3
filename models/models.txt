@@ -1,0 +1,3 @@
+Our saved Faster-RCNN and RF weights are both above 100MB, so they are saved at this public link:
+
+https://drive.google.com/drive/folders/1_VR7xpJEMU-UJwP33QWvTA-TDhxzL9sr?usp=drive_link
