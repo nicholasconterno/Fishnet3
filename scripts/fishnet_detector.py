@@ -10,6 +10,7 @@ import matplotlib.patches as patches
 class FishnetDetector:
     def __init__(self, model_path: str):
         self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+        print(f"Using device: {self.device}")
         self.model_old = fasterrcnn_resnet50_fpn(weights="FasterRCNN_ResNet50_FPN_Weights.DEFAULT")
         self.model_old.to(self.device)
         self.model_old.eval()
@@ -171,10 +172,10 @@ if __name__ == "__main__":
     # Create a detector using saved weights
     detector = FishnetDetector(model_path="../data/best_model.pth")
     # Run inference on an image
-    output = detector.detect(img_path="../data/test_image.jpg", 
-                             thresh_human=0.8,
-                             thresh_fish=0.6,
-                             output_img_path="../data/test_image_annotated.jpg",
+    output = detector.detect(img_path="../data/test_image_2.jpg", 
+                             thresh_human=0.7,
+                             thresh_fish=0.7,
+                             output_img_path="../data/test_image_2_annotated.jpg",
                              show_labels=True)
     
 
