@@ -34,6 +34,8 @@ def upload_file():
         return render_template('upload.html', message='No file part. Please try again.')
 
     file = request.files['file']
+    fish_thresh = float(request.form['fish_thresh'])
+    human_thresh = float(request.form['human_thresh'])
     # Check if 'all_models' checkbox was checked
     is_allmodels = 'all_models' in request.form
     print(f"Using all models: {is_allmodels}")
@@ -49,7 +51,7 @@ def upload_file():
 
         if is_allmodels:
             # Process the image with object detection and keep new filename
-            rcnn_img_name, fishnet_img_name, rf_img_name = object_detect(filepath, all_models=True)
+            rcnn_img_name, fishnet_img_name, rf_img_name = object_detect(filepath, all_models=True, fish_threshold=fish_thresh, human_threshold=human_thresh)
             print(f"Processed images: {rcnn_img_name}, {fishnet_img_name}, {rf_img_name}")
             if rcnn_img_name and fishnet_img_name and rf_img_name:
                 # Redirect to the display page with the processed image filenames
@@ -60,7 +62,7 @@ def upload_file():
                 return render_template('upload.html', message='Something went wrong. Please try again.')
         else:
             # Process with only fishnet detector
-            rcnn_img_name, fishnet_img_name, rf_img_name = object_detect(filepath, all_models=False)
+            rcnn_img_name, fishnet_img_name, rf_img_name = object_detect(filepath, all_models=False, fish_threshold=fish_thresh, human_threshold=human_thresh)
             print(f"Processed images: {rcnn_img_name}, {fishnet_img_name}, {rf_img_name}")
             if fishnet_img_name:
                 # Redirect to the display page with the processed image filenames
