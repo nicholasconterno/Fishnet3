@@ -1,5 +1,5 @@
 # Fishnet Object Detection
-Module Project 1: AIPI 540 - Using deep learning methods to classify and bound fish in images of commerical fishing scenes.
+Module Project 1: AIPI 540 - Using deep learning methods to classify and bound fish and humans in images of commerical fishing scenes.
 
 <table>
   <tr>
