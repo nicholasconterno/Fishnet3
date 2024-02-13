@@ -283,5 +283,3 @@ def calculate_f1_scores():
     mean_model_f1 = calculate_batch_f1_score_from_json('../data/test_labels_only.json', '../data/mean_model_labels_only.json')
     print(f'Best Model F1 Score: {best_model_f1}')
     print(f'Mean Model F1 Score: {mean_model_f1}')
-
-calculate_f1_scores()
