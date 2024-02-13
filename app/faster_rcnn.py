@@ -41,7 +41,7 @@ def load_fastercnn(model_weights_path):
     
     return model
 
-def plot_bounding_boxes(image_in, results, x_scale, y_scale):
+def plot_bounding_boxes(image_in, results, x_scale, y_scale, threshold=0.8):
     '''
     Plot the bounding boxes and labels of the detected objects.
     Args:
@@ -49,6 +49,7 @@ def plot_bounding_boxes(image_in, results, x_scale, y_scale):
         results: dict, detection results
         x_scale: float, scaling factor for the x-axis
         y_scale: float, scaling factor for the y-axis
+        threshold: float, threshold for the detection confidence
     Returns:
         np.array: image with bounding boxes and labels
     '''
@@ -60,45 +61,48 @@ def plot_bounding_boxes(image_in, results, x_scale, y_scale):
     # Get detections for the first image in the batch
     detections = results[0]
     
+    ret_img = cv2.cvtColor(image_in, cv2.COLOR_RGB2BGR)
     # Plot bounding boxes and labels of the detected objects
     for box, label, score in zip(detections['boxes'], detections['labels'], detections['scores']):
-        # Convert tensor to numpy array and to integer coordinates
-        box = box.cpu().numpy().astype(np.int32)
-        label = label.item()  # Convert to Python scalar
-        score = score.item()  # Convert to Python scalar
-        
-        # Scale the bounding boxes
-        box = [int(box[0] * x_scale), int(box[1] * y_scale),
-               int(box[2] * x_scale), int(box[3] * y_scale)]
-        
-        # Draw rectangle
-        start_point = (box[0], box[1])
-        end_point = (box[2], box[3])
-        color = (255, 0, 0)  # Red
-        thickness = 2
-        
-        image_boxed = cv2.rectangle(image_in, start_point, end_point, color, thickness)
-        
-        # Get the class name
-        class_name = id_to_class[label]
-        # Label with class name and probability
-        label_text = f"{class_name}: {score:.2f}"
-        position = (box[0], box[1] - 10)  # Position for text is slightly above the top-left corner of the box
-        font_scale = 0.5
-        font_color = (255, 0, 0)  # Red 
-        line_type = 1
-        
-        image_labeled = cv2.putText(image_boxed, label_text, position, cv2.FONT_HERSHEY_SIMPLEX, font_scale, font_color, line_type)
-        image_colorfixed = cv2.cvtColor(image_labeled, cv2.COLOR_RGB2BGR)
-    return image_colorfixed
+        if score > threshold:
+            # Convert tensor to numpy array and to integer coordinates
+            box = box.cpu().numpy().astype(np.int32)
+            label = label.item()  # Convert to Python scalar
+            score = score.item()  # Convert to Python scalar
+            
+            # Scale the bounding boxes
+            box = [int(box[0] * x_scale), int(box[1] * y_scale),
+                int(box[2] * x_scale), int(box[3] * y_scale)]
+            
+            # Draw rectangle
+            start_point = (box[0], box[1])
+            end_point = (box[2], box[3])
+            color = (255, 0, 0)  # Red
+            thickness = 2
+            
+            image_boxed = cv2.rectangle(image_in, start_point, end_point, color, thickness)
+            
+            # Get the class name
+            class_name = id_to_class[label]
+            # Label with class name and probability
+            label_text = f"{class_name}: {score:.2f}"
+            position = (box[0], box[1] - 10)  # Position for text is slightly above the top-left corner of the box
+            font_scale = 0.5
+            font_color = (255, 0, 0)  # Red 
+            line_type = 1
+            
+            image_labeled = cv2.putText(image_boxed, label_text, position, cv2.FONT_HERSHEY_SIMPLEX, font_scale, font_color, line_type)
+            ret_img = cv2.cvtColor(image_labeled, cv2.COLOR_RGB2BGR)
+    return ret_img
 
 
-def process_image(file, model_pth):
+def process_image(file, model_pth, thresh=0.5):
     '''
     Process the input image using the Faster R-CNN model.
     Args:
         file: str, path to the input image file
         model_pth: str, path to the model weights
+        thresh: float, threshold for the detection confidence
     Returns:
         str: path to the processed image
     '''
@@ -133,7 +137,7 @@ def process_image(file, model_pth):
     y_scale = original_dims[0] / resized_dims[1]
 
     # Plot the bounding boxes
-    image = plot_bounding_boxes(image_cv_rgb, results, x_scale, y_scale)
+    image = plot_bounding_boxes(image_cv_rgb, results, x_scale, y_scale, threshold=thresh)
     # Save the image
     input_file_name = os.path.basename(file).split('.')[0]
     image_name = f'{input_file_name}_processed.jpg'

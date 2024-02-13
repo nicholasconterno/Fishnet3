@@ -6,25 +6,42 @@ import torch
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from fishnet_detector import FishnetDetector
 
+COCO_INSTANCE_CATEGORY_NAMES = [
+    '__background__', 'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus',
+    'train', 'truck', 'boat', 'traffic light', 'fire hydrant', 'N/A', 'stop sign',
+    'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow',
+    'elephant', 'bear', 'zebra', 'giraffe', 'N/A', 'backpack', 'umbrella', 'N/A', 'N/A',
+    'handbag', 'tie', 'suitcase', 'frisbee', 'skis', 'snowboard', 'sports ball',
+    'kite', 'baseball bat', 'baseball glove', 'skateboard', 'surfboard',
+    'tennis racket', 'bottle', 'N/A', 'wine glass', 'cup', 'fork', 'knife', 'spoon',
+    'bowl', 'banana', 'apple', 'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza',
+    'donut', 'cake', 'chair', 'couch', 'potted plant', 'bed', 'N/A', 'dining table',
+    'N/A', 'N/A', 'toilet', 'N/A', 'tv', 'laptop', 'mouse', 'remote', 'keyboard',
+    'cell phone', 'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'N/A',
+    'book', 'clock', 'vase', 'scissors', 'teddy bear', 'hair drier', 'toothbrush'
+]
 
 def format_model_output(model_output, score_threshold=0.8):
     formatted_output = []
     
     boxes = model_output[0]['boxes'].detach().cpu().numpy()
     scores = model_output[0]['scores'].detach().cpu().numpy()
+    labels = model_output[0]['labels'].detach().cpu().numpy()
 
-    for box, score in zip(boxes, scores):
+    for box, label, score in zip(boxes, labels, scores):
         if score >= score_threshold:
             # Extract bounding box coordinates and round them
             x_min, y_min, x_max, y_max = map(int, box)
+            class_label = COCO_INSTANCE_CATEGORY_NAMES[label]
+            if class_label == 'person':
+                class_label = 'Human'
 
             # Format according to your required JSON structure
-            # Assuming the class is always "Human" as per your previous JSON
-            # Modify this if you have class labels
-            detection = [[[str(x_min), str(x_max)], [str(y_min), str(y_max)], "Human"]]
+            detection = [[[str(x_min), str(x_max)], [str(y_min), str(y_max)], class_label]]
             formatted_output.append(detection)
 
     return formatted_output
+
 
 def format_best_model(model_output, score_threshold=0.8):
     formatted_output = []
@@ -50,6 +67,7 @@ def run_mean_model_inference_on_images(model, image_ids, image_folder):
     for image_id in image_ids:
         count += 1
         if (count+1) % 20 == 0:
+            # break
             print(f"Processed {count+1} images")
         # Assuming image files are named with their image IDs
         image_path = f"{image_folder}/{image_id}.jpg"  # Adjust this path format as needed
@@ -78,7 +96,7 @@ def run_best_model_inference_on_images(model, image_ids, image_folder):
         normalized_image = tensor_transform(image).unsqueeze(0)
 
         model_output = model.detect(image_path, thresh_human=0.8, thresh_fish=0.6)
-        print(model_output)
+        # print(model_output)
         formatted_output = format_best_model(model_output)
         results[image_id] = [formatted_output]
 
