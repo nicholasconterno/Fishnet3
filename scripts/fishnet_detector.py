@@ -172,10 +172,10 @@ if __name__ == "__main__":
     # Create a detector using saved weights
     detector = FishnetDetector(model_path="../data/best_model.pth")
     # Run inference on an image
-    output = detector.detect(img_path="../data/test_imgs/fc4c8538-5952-11ec-98bd-2bc9d4d76c7c.jpg", 
-                             thresh_human=0.8,
-                             thresh_fish=0.6,
-                             output_img_path="../data/test_set_img_preds.jpg",
+    output = detector.detect(img_path="../data/test_image_2.jpg", 
+                             thresh_human=0.7,
+                             thresh_fish=0.7,
+                             output_img_path="../data/test_image_2_annotated.jpg",
                              show_labels=True)
     
 

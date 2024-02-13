@@ -4,6 +4,7 @@ from torch.utils.data import DataLoader
 from custom_dataset import FishnetDataset
 from torchvision.models.detection import fasterrcnn_resnet50_fpn
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
+from typing import Tuple
 
 
 def train(model: torch.nn.Module, 
@@ -120,13 +121,36 @@ def transform_targets_fixed(raw_targets):
     return target_dict
 
 
+def get_finetune_ready_rcnn() -> torch.nn.Module:
+    """
+    Created a pre-trained Faster R-CNN model with the final head replaced and all other weights frozen.
 
-if __name__ == "__main__":
-    # TODO:
-    # Clean all of this up
+    Returns:
+        torch.nn.Module: the model ready for finetuning
+    """
+    # Setup model and freeze the weights
+    model = fasterrcnn_resnet50_fpn(weights="FasterRCNN_ResNet50_FPN_Weights.DEFAULT")
+    for param in model.parameters():
+        param.requires_grad = False
 
-    BATCH_SIZE = 32
+    # Change the final head
+    in_features = model.roi_heads.box_predictor.cls_score.in_features
+    num_classes = 26
+    model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
 
+    return model
+
+
+def get_dataloaders(batch_size: int = 32) -> Tuple[DataLoader, DataLoader, DataLoader]:
+    """
+    Create the train, validation, and test dataloaders.
+
+    Args:
+        batch_size: int, the batch size for the dataloaders
+
+    Returns:
+        Tuple[DataLoader, DataLoader, DataLoader]: the train, validation, and test dataloaders
+    """
     # Define the transforms
     transform = transforms.Compose([
         transforms.ToTensor(),
@@ -140,17 +164,6 @@ if __name__ == "__main__":
                             resize_shape=(400, 800),
                             download_data=True) 
     
-
-    # Setup model and freeze the weights
-    model = fasterrcnn_resnet50_fpn(weights="FasterRCNN_ResNet50_FPN_Weights.DEFAULT")
-    for param in model.parameters():
-        param.requires_grad = False
-
-    # Change the final head
-    in_features = model.roi_heads.box_predictor.cls_score.in_features
-    num_classes = 26
-    model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
-
     # Create train, val, test splits
     train_size = int(0.8 * len(dataset))
     val_size = int(0.1 * len(dataset))
@@ -161,12 +174,27 @@ if __name__ == "__main__":
         return tuple(zip(*batch))
     
     # Create the dataloaders
-    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, collate_fn=collate_fn)
-    val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, collate_fn=collate_fn)
-    test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False, collate_fn=collate_fn)
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
+    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
+
+    return train_loader, val_loader, test_loader
+
+
+
+if __name__ == "__main__":
+    
+    # Create the finetune-ready model
+    model = get_finetune_ready_rcnn()
+
+    # Create the dataloaders
+    train_loader, val_loader, test_loader = get_dataloaders()
+
+    # Setup Device
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Train the model
-    trained_model = train(model, train_loader, val_loader, epochs=100, lr=0.001, device="cuda")
+    trained_model = train(model, train_loader, val_loader, epochs=100, lr=0.001, device=device)
 
 
 
